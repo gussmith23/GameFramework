@@ -25,7 +25,8 @@ def add_initial_field_from_update(update, fields):
 
 	# straightforward case.
 	if update['type'] == "set":
-		fields[update['field']] = update['value'] # note this assumes values are constants
+		print(eval(update['value']))
+		fields[update['field']] = eval(update['value']) # note this assumes values are constants
 		
 	# recurse to find sets contained in lists.
 	elif update['type'] == "update_list":
@@ -80,7 +81,7 @@ def create_state(_updates):
 
 # Takes json dict of rough format:
 #	{ "init" : [u1, u2, ...], ... }
-def create_game(_states):
+def create_game(_states, fields):
 	#states = {}
 	#for name,updates in _states.items():
 	#	states[name] = create_state(updates)
@@ -88,12 +89,12 @@ def create_game(_states):
 	return Game(fields, states)
 
 # Main function: just run the game 
-def run_game(_input):
+def run(_input):
 	#json read stuff
 	fields = create_fields(_input)
-	game = create_game(_input)
+	game = create_game(_input, fields)
 	# not ideal solution
-	while( fields['state'] != "Finish" ):
+	while( fields['next_state'] != "Finish" ):
 		game.step()
 	print("Donzo")
-	
+
