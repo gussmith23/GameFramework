@@ -34,3 +34,29 @@ class Update:
 		
 	def execute(self, fields):
 		self.update(fields)
+		
+class Update_cond:
+	# cond list will have one or two elements, and will look like:
+	# cond_list = [
+	#  {'type':'if', 'condition':some lambda, 'updates' : list of updates},
+	#		{'type':'else', 'updates'}]
+	def __init__(self, cond_list):
+		self.cond_dict = cond_dict
+	
+	def execute(self, fields):
+		
+		if_was_executed = False
+	
+		for section_dict in cond_list:
+			if section_dict['type'] == 'if':
+				condition = section_dict['condition']
+				if condition(fields):
+					if_was_executed = True
+					for update in section_dict['updates']: 
+						update.execute(fields)
+			
+			# if type was else
+			else:
+				if not if_was_executed:
+					for update in section_dict['updates']: 
+						update.execute(fields)
