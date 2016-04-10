@@ -92,3 +92,10 @@ class Update_get:
 			
 	def execute(self, fields):
 		self.update(fields)
+		
+class Update_list:
+	def __init__(self, updates):
+		self.updates = updates
+	
+	def execute(self, fields):
+		for update in self.updates: update.execute(fields)
