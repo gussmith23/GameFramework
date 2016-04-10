@@ -1,0 +1,25 @@
+Rules for RuleBook:
+
+1. Name of the state begins a paragraph and ends with ':'
+2. Paragraphs are made up of statements, each of which end with '.'
+3. One paragraph represents a state; the whole game is multiple states (paragraphs)
+4. Strings are surrounded by ""
+5. If/Else if/Else structures are possible and defined by:
+	a. the last statements in each block end with '.'
+	b. intermediate statements in each block end with ','
+	c. conditionals end with ':'
+6. Final states (for example clear winning or losing) end with "Finish." statement
+7. Exact Python code can be written when surrounded with backticks ``
+8. Comments are surrounded by ()
+9. Mandatory paragraph: "init"
+	a. Initialization of variables takes place in init (for us)
+
+
+Keywords:
+Get
+Say
+is
+less than
+greater than
+if, else if, else
+Finish
