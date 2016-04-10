@@ -327,14 +327,14 @@ bool parse_expression_unquoted(string& expr)
 
 bool parse_expression(string& expr)
 {
-	expr = "\"\\\"";
+	expr = "\"";
 
 	string temp;
 	if(!parse_expression_unquoted(temp))
 		return false;
 	expr += temp;
 
-	expr += "\\\"\"";
+	expr += "\"";
 
 	return true;
 }
