@@ -89,7 +89,7 @@ def create_game(_states, fields):
 
 # Main function: just run the game 
 def run(_input):
-	with open('json.txt') as file:
+	with open('json3.txt') as file:
 		data = file.read().replace('\n','')
 	dj = json.loads(data)
 
