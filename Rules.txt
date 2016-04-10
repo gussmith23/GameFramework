@@ -1,6 +1,7 @@
 Rules for RuleBook:
 
-1. Name of the state begins a paragraph and ends with ':'
+0. varnames are alphanumeric and underscores
+1. Name of the state begins a paragraph and ends with ':' (no space)
 2. Paragraphs are made up of statements, each of which end with '.'
 3. One paragraph represents a state; the whole game is multiple states (paragraphs)
 4. Strings are surrounded by ""
@@ -13,6 +14,13 @@ Rules for RuleBook:
 8. Comments are surrounded by ()
 9. Mandatory paragraph: "init"
 	a. Initialization of variables takes place in init (for us)
+
+Future Rules (?):
+10. If floats are used, there can be no whitespace in the middle (e.g. "1 . 0" is not valid, versus "1.0")
+11. Input types:
+	a. Get <> as number
+	b. Get <> as string
+12. String formatting: "This is a number {varname} !"
 
 
 Still Need:

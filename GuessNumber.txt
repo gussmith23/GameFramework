@@ -1,26 +1,29 @@
 
-(comments can be)
+(comments can be like this)
 
-fields = {
-    'number_to_guess'   : randint(0, 10), 
-    'guessed_num'       : -1,
-    'state'             : "init"
-}
+(
+    Basic imports: 
+    random.randint
+    math.*
+    from operator import setitem
+)
 
 init:
+    guessed_num is -1.
+    number_to_guess is `randint(0,10)`.
     Say "Welcome to guess a number!".
-    state is choose.
+    state is "choose".
 
 choose:
     Get guessed_num.
     if guessed_num is number_to_guess:
-        state is victory
+        state is victory.
     else:
-        state is wrong.
+        state is "wrong".
 
 wrong:
     Say "You guessed wrong".
-    state is choose.
+    state is "choose".
 
 victory:
     Say "Good job!".

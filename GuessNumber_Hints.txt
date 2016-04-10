@@ -2,27 +2,24 @@
 (comments can be expressed like this lol)
 (This version of guess the number will give hints)
 
-fields = {
-    'number_to_guess'   : randint(0, 10), 
-    'guessed_num'       : -1,
-    'state'             : "init"
-}
-
 init:
+    guessed_num is -1.
+    number_to_guess is `randint(0,10)`.
     Say "Welcome to guess a number!".
-    state is choose.
+    next_state is "choose".
 
-choose:
+state choose:
+    Say "Enter a number: "
     Get guessed_num.
     if guessed_num is number_to_guess:
-        state is victory
+        next_state is "victory".
     else:
-        state is wrong.
+        next_state is "wrong".
 
 wrong:
-    if guessed_num lt number_to_guess: Say "You guessed too low",
+    if guessed_num < number_to_guess: Say "You guessed too low",
     else: Say "You guessed too high".
-    state is choose.
+    next_state is choose.
 
 victory:
     Say "Good job!".
