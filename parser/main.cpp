@@ -11,7 +11,6 @@ enum token_types
 	TOKEN_KEYWORD,
 	TOKEN_DELIMITER,
 	TOKEN_OPERATOR,
-	TOKEN_STATE_HEADER,
 	TOKEN_VARIABLE,
 	TOKEN_STRING,
 	TOKEN_PYTHON_CODE,
@@ -20,6 +19,7 @@ enum token_types
 	TOKEN_INVALID
 };
 
+unsigned int token_line;
 int token_type;
 string token_value;
 
@@ -46,7 +46,11 @@ void next_token()
 
 	// Ignore leading whitespace
 	while(isspace(cur_char()))
+    {
+		if(cur_char() == '\n')
+			++token_line;
 		advance_char();
+	}
 
 	// Check for end of input
 	if(cur_char() == EOF)
@@ -56,7 +60,7 @@ void next_token()
 	}
 
 	// Check if delimiter
-	if(cur_char() == '.' || cur_char() == ',')
+	if(cur_char() == '.' || cur_char() == ',' || cur_char() == ':')
 	{
 		token_type = TOKEN_DELIMITER;
 		token_value = cur_char();
@@ -133,19 +137,11 @@ void next_token()
 		advance_char();
 	}
 
-	// Check if state header
-	if(cur_char() == ':')
-	{
-		advance_char();
-		token_type = TOKEN_STATE_HEADER;
-		token_value = temp;
-		return;
-	}
-
 	// Check if keyword
 	if(temp_lower == "get" || temp_lower == "say" ||
 	   temp_lower == "if" || temp_lower == "else" ||
-	   temp_lower == "is" || temp_lower == "finish")
+	   temp_lower == "is" || temp_lower == "finish" ||
+	   temp_lower == "state")
 	{
 		token_type = TOKEN_KEYWORD;
 		token_value = temp_lower;
@@ -166,64 +162,328 @@ void next_token()
 	}
 }
 
+string str_token()
+{
+	string token_type_str;
+	switch(token_type)
+	{
+	case TOKEN_KEYWORD:
+		token_type_str = "Keyword";
+		break;
+	case TOKEN_DELIMITER:
+		token_type_str = "Delimiter";
+		break;
+	case TOKEN_OPERATOR:
+		token_type_str = "Operator";
+		break;
+	case TOKEN_VARIABLE:
+		token_type_str = "Variable";
+		break;
+	case TOKEN_STRING:
+		token_type_str = "String";
+		break;
+	case TOKEN_PYTHON_CODE:
+		token_type_str = "Python code";
+		break;
+	case TOKEN_NUMBER:
+		token_type_str = "Number";
+		break;
+	case TOKEN_INVALID:
+		token_type_str = "Invalid token";
+		break;
+	default:
+		break;
+	}
+
+	return "(" + token_type_str + ", \"" + token_value + "\")";
+}
+
 void tokenizer_init()
 {
+	token_line = 1;
 	tokenizer_cur = cin.get();
 	next_token();
 }
 
+bool parse_expression();
 
-void parse_state()
+bool parse_expression_term()
 {
-	
+	if(token_type == TOKEN_OPERATOR && token_value == "(")
+	{
+		if(!parse_expression())
+			return false;
+		if(token_type != TOKEN_OPERATOR || token_value != ")")
+		{
+			cerr << "Parse error in parse_expression_term(): expected operator ')'" << endl;
+			return false;
+		}
+		next_token();
+	}
+	else if(token_type == TOKEN_NUMBER)
+	{
+		next_token();
+		return true;
+	}
+	else if(token_type == TOKEN_VARIABLE)
+	{
+		next_token();
+		return true;
+	}
+	else
+	{
+		cerr << "Parse error in parse_expression_term(): expected number or variable" << endl;
+		return false;
+	}
+
+	return true;
 }
 
-void parse_rulebook()
+bool parse_expression_factor()
 {
+	while(true)
+	{
+		if(!parse_expression_term())
+			return false;
+
+		if(token_type == TOKEN_OPERATOR)
+		{
+			if(token_value != "+" && token_value != "-" && token_value != ")")
+			{
+				cerr << "Parse error in parse_expression_factor(): expected operator '+', '-', or ')'" << endl;
+				return false;
+			}
+
+			next_token();
+		}
+		else
+		{
+			return true;
+		}
+	}
+}
+
+bool parse_expression_noncompare()
+{
+	while(true)
+	{
+		if(!parse_expression_factor())
+			return false;
+
+		if(token_type == TOKEN_OPERATOR)
+		{
+			if(token_value != "*" && token_value != "/" && token_value != "%" && token_value != ")")
+			{
+				cerr << "Parse error in parse_expression_noncompare(): expected operator '*', '/', '%', ')'" << endl;
+				return false;
+			}
+
+			next_token();
+		}
+		else
+		{
+		    return true;
+		}
+	}
+}
+
+bool parse_expression()
+{
+	if(!parse_expression_noncompare())
+		return false;
+
+	if(token_type == TOKEN_KEYWORD && token_value == "is")
+	{
+		next_token();
+		if(!parse_expression_noncompare())
+			return false;
+	}
+
+	return true;
+}
+
+bool parse_statement();
+
+bool parse_conditional()
+{
+	if(token_type != TOKEN_KEYWORD || token_value != "if")
+	{
+		cerr << "Parse error in parse_conditional(): expected 'if'" << endl;
+		return false;
+	}
 	
+	next_token();
+	if(!parse_expression())
+		return false;
+
+	if(token_type != TOKEN_DELIMITER || token_value != ":")
+	{
+		cerr << "Parse error in parse_conditional(): expected ':'" << endl;
+		return false;
+	}
+
+	next_token();
+	if(!parse_statement())
+		return false;
+
+	if(token_type == TOKEN_KEYWORD && token_value == "else")
+	{
+		next_token();
+		if(token_type == TOKEN_DELIMITER && token_value == ":")
+		{
+			next_token();
+			if(!parse_statement())
+				return false;
+		}
+		else if(token_type == TOKEN_KEYWORD && token_value == "if")
+		{
+			if(!parse_conditional())
+				return false;
+		}
+		else
+		{
+			cerr << "Parse error in parse_conditional(): expected ':' or 'if'" << endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool parse_assignment()
+{
+	if(token_type != TOKEN_VARIABLE)
+	{
+		cerr << "Parse error in parse_assignment(): expected variable name." << endl;
+		return false;
+	}
+
+	next_token();
+	if(token_type != TOKEN_KEYWORD && token_value != "is")
+	{
+		cerr << "Parse error in parse_assignment(): expected keyword \"is\"." << endl;
+		return false;
+	}
+
+	next_token();
+	if(!parse_expression())
+		return false;
+
+	return true;
+}
+
+bool parse_statement()
+{
+	while(true)
+	{
+		if(token_type == TOKEN_VARIABLE)
+		{
+			if(!parse_assignment())
+				return false;
+		}
+		else if(token_type == TOKEN_KEYWORD && token_value == "if")
+		{
+			if(!parse_conditional())
+				return false;
+			return true;
+		}
+		else if(token_type == TOKEN_KEYWORD && token_value == "say")
+		{
+			next_token();
+			if(token_type != TOKEN_STRING)
+			{
+				cerr << "Parse error in parse_statement(): expected string" << endl;
+				return false;
+			}
+			next_token();
+		}
+		else if(token_type == TOKEN_KEYWORD && token_value == "get")
+		{
+			next_token();
+			if(token_type != TOKEN_VARIABLE)
+			{
+				cerr << "Parse error in parse_statement(): expected variable" << endl;
+				return false;
+			}
+			next_token();
+		}
+		else if(token_type == TOKEN_KEYWORD && token_value == "finish")
+		{
+			next_token();
+		}
+		else
+		{
+			cerr << "Parse error in parse_statement(): expected variable or 'if'" << endl;
+			return false;
+		}
+
+		if(token_type != TOKEN_DELIMITER)
+		{
+			cerr << "Parse error in parse_statement(): expected '.' or ',' at end of statement." << endl;
+			return false;
+		}
+
+		char delimiter = token_value[0];
+		next_token();
+		if(delimiter == '.')
+		{
+			return true;
+		}
+	}
+}
+
+bool parse_state()
+{
+	if(token_type != TOKEN_KEYWORD || token_value != "state")
+	{
+		cerr << "Parse error in parse_state(): expected 'state'" << endl;
+		return false;
+	}
+
+	next_token();
+	if(token_type != TOKEN_VARIABLE)
+	{
+		cerr << "Parse error in parse_state(): expected variable" << endl;
+		return false;
+	}
+
+	next_token();
+	if(token_type != TOKEN_DELIMITER || token_value != ":")
+	{
+		cerr << "Parse error in parse_state(): expected ':'" << endl;
+		return 1;
+	}
+		
+	next_token();
+	while(token_type != TOKEN_KEYWORD || token_value != "state")
+	{
+		if(token_type == TOKEN_EOF)
+			return true;
+		
+		if(!parse_statement())
+			return false;
+	}
+
+	return true;
+}
+
+bool parse_rulebook()
+{
+	while(token_type != TOKEN_EOF)
+	{
+		if(!parse_state())
+			return false;
+	}
+
+	return true;
 }
 
 int main()
 {
 	tokenizer_init();
 
-	while(token_type != TOKEN_EOF)
+	if(!parse_rulebook())
 	{
-		switch(token_type)
-		{
-		case TOKEN_KEYWORD:
-			cout << "Keyword: ";
-			break;
-		case TOKEN_DELIMITER:
-			cout << "Delimiter: ";
-			break;
-		case TOKEN_OPERATOR:
-			cout << "Operator: ";
-			break;
-		case TOKEN_STATE_HEADER:
-			cout << "State header: ";
-			break;
-		case TOKEN_VARIABLE:
-			cout << "Variable: ";
-			break;
-		case TOKEN_STRING:
-			cout << "String: ";
-			break;
-		case TOKEN_PYTHON_CODE:
-			cout << "Python code: ";
-			break;
-		case TOKEN_NUMBER:
-			cout << "Number: ";
-			break;
-		case TOKEN_INVALID:
-			cout << "Invalid token";
-			break;
-		default:
-			break;
-		}
-
-		cout << token_value << endl;
-
-		next_token();
+		cerr << "Failed at line " << token_line << " token " << str_token() << endl;
 	}
 }
