@@ -22,15 +22,19 @@ def create_update(_elem):
 	if elem['type'] == 'cond':
 		pass
 
+# Creates all updates
+# Returns the created state with all updates added
 def create_state(_updates):
-	updates = [ create_update(update) for update in updates ]
+	updates = [ create_update(update) for update in _updates ]
 	return State(updates)
 
-# Takes json dict of rough format
+# Takes json dict of rough format:
+#	{ "init" : [u1, u2, ...], ... }
 def create_game(_states):
-	states = {}
-	for name,updates in _states.items():
-		statess[name] = create_state(updates)
+	#states = {}
+	#for name,updates in _states.items():
+	#	states[name] = create_state(updates)
+	states = {name:create_state(updates) for name,updates in _states.items()}
 	return Game(fields, states)
 
 # Function takes json input and runs completed game
