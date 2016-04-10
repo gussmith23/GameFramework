@@ -1,34 +1,33 @@
 from Game import Game
 from State import State
 from Update import Update
-import operator
+from random import randint
+from operator import setitem
+
 
 fields = {
-	'number_to_guess' : 5, 
-	'guessed_num' 		: 0,
+	'number_to_guess' : randint(0, 10), 
+	'guessed_num' 		: -1,
 	'victory'					: False,
-	'current_state' 	: "choose"
+	'current_state' 	: "init"
 }
 
 def main():
-	update_guessed_num = Update(get_guess)
-	update_victory = Update(lambda _fields: operator.setitem(_fields, 'victory', _fields['number_to_guess'] == _fields['guessed_num']))
-	state_guess_number = State([update_guessed_num, update_victory])
 	
-	game = Game(fields, {"choose":state_guess_number})
+	update_init_print = Update(lambda _fields: print("Welcome to Guess a Number!"))
+	update_init_nextstate = Update(lambda _fields: setitem(_fields, 'current_state', 'choose'))
+	state_init = State([update_init_print, update_init_nextstate])
+
+	update_guessed_num = Update(lambda _fields: setitem(_fields, 'guessed_num', int(input('Guess a number: '))))
+	update_victory = Update(lambda _fields: setitem(_fields, 'victory', _fields['number_to_guess'] == _fields['guessed_num']))
+	state_choose = State([update_guessed_num, update_victory])
+	
+	game = Game(fields, {"init":state_init, "choose":state_choose})
 	
 	while(not fields['victory']):
 		game.step()
 		
 	print("You won!")
-
-def get_guess(_fields):
-	try:
-		guess = int(input('Guess a number: '))
-		_fields['guessed_num'] = guess
-		return True
-	except ValueError:
-		return False
 		
 if __name__ == "__main__":
 	main()
