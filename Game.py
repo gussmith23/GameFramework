@@ -4,4 +4,5 @@ class Game:
 		self.states = states
 		
 	def step(self):
-		self.states[self.fields['current_state']].step(self.fields)
+		# Currently, programmers are required to use "next_state" variable in fields declaration
+		self.states[self.fields['next_state']].step(self.fields)
