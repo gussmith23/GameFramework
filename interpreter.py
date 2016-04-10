@@ -90,8 +90,8 @@ def create_game(_states, fields):
 	return Game(fields, states)
 
 # Main function: just run the game 
-def run(_input):
-	with open('json3.txt') as file:
+def run(filename):
+	with open(filename) as file:
 		data = file.read().replace('\n','')
 	dj = json.loads(data)
 
@@ -109,6 +109,12 @@ def run(_input):
 		game.step()
 	print(" done with the loop ")
 
+def runWithFilename(filename):
+	with open(filename) as file:
+		data = file.read()
+	runFromString(data)
+	
+	
 # Input is a string containing the contents of the file.	
 def runFromString(_input):
 	completed = subprocess.run(["parser"], universal_newlines = True, input = _input)
