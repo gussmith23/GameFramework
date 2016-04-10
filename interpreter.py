@@ -8,6 +8,30 @@ from math import *
 
 import json
 
+# Initializes the fields dictionary global for the game object
+def create_fields(_input):
+	init = _input['init']
+	fields = {}
+	for update in init:
+		add_initial_field_from_update(update,fields)
+	return fields
+		
+# parses an update to see if there's an initial
+# value to be set, and if there is, add it to fields.
+# if the update isn't a "set" or "update_list" then it just returns.
+# if it's a set, it adds to fields. if it's a list,
+# it recurses.
+def add_initial_field_from_update(update, fields):
+
+	# straightforward case.
+	if update['type'] == "set":
+		fields[update['field']] = update['value'] # note this assumes values are constants
+		
+	# recurse to find sets contained in lists.
+	elif update['type'] == "update_list":
+		for u in update['list']:
+			add_initial_field_from_update(u, fields)
+
 def create_update(elem):
 	if elem['type'] == 'say':
 		return Update_say(elem['say_string'])
@@ -29,55 +53,6 @@ def create_update(elem):
 	if elem['type'] == 'finish':
 		return Update_finish()
 
-# Creates all updates
-# Returns the created state with all updates added
-def create_state(_updates):
-	updates = [ create_update(update) for update in _updates ]
-	return State(updates)
-
-# Takes json dict of rough format:
-#	{ "init" : [u1, u2, ...], ... }
-def create_game(_states):
-	#states = {}
-	#for name,updates in _states.items():
-	#	states[name] = create_state(updates)
-	states = {name:create_state(updates) for name,updates in _states.items()}
-	return Game(fields, states)
-	
-def create_fields(_input):
-	init = _input['init']
-	fields = {}
-	for update in init:
-		add_initial_field_from_update(update,fields)
-		
-# parses an update to see if there's an initial
-# value to be set, and if there is, add it to fields.
-# if the update isn't a "set" or "update_list" then it just returns.
-# if it's a set, it adds to fields. if it's a list,
-# it recurses.
-def add_initial_field_from_update(update, fields)
-
-	# straightforward case.
-	if update['type'] == "set":
-		fields[update['field']] = update['value'] # note this assumes values are constants
-		
-	# recurse to find sets contained in lists.
-	elif update['type'] == "update_list":
-		for u in update['list']:
-			add_initial_field_from_update(u, fields)
-			
-# Function 
-def run_game(_input):
-	#json read stuff
-	fields = create_fields(_input)
-	game = create_game(_input)
-
-	# not ideal solution
-	while( fields['state'] != "Finish" ):
-		game.step()
-	print("Donzo")
-
-
 # takes cond update json
 # returns conditional Update.
 def parse_cond_update(elem):
@@ -97,3 +72,28 @@ def parse_cond_update(elem):
 		
 	return Update_cond(cond_list)
 
+# Creates all updates
+# Returns the created state with all updates added
+def create_state(_updates):
+	updates = [ create_update(update) for update in _updates ]
+	return State(updates)
+
+# Takes json dict of rough format:
+#	{ "init" : [u1, u2, ...], ... }
+def create_game(_states):
+	#states = {}
+	#for name,updates in _states.items():
+	#	states[name] = create_state(updates)
+	states = {name:create_state(updates) for name,updates in _states.items()}
+	return Game(fields, states)
+
+# Main function: just run the game 
+def run_game(_input):
+	#json read stuff
+	fields = create_fields(_input)
+	game = create_game(_input)
+	# not ideal solution
+	while( fields['state'] != "Finish" ):
+		game.step()
+	print("Donzo")
+	

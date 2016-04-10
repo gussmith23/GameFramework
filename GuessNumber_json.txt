@@ -1,5 +1,5 @@
-game = { 'init' : [], 'choose' : [], 'wrong' : [], 'victory' : [] }
 from random import randint
+game = { 'init' : [], 'choose' : [], 'wrong' : [], 'victory' : [] }
 game['init'] = [
 	{'type': 'set', 'field': 'guessed_num', 'value': -1},
 	{'type': 'set', 'field': 'number_to_guess', 'value': randint(0,10)},
