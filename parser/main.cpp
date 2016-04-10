@@ -435,7 +435,8 @@ bool parse_statement(string& json)
 	json = "{\"type\":\"update_list\",\"list\":[";
 	string cur_statement;
 	bool nfirst = false;
-	while(true)
+	bool done = false;
+	while(!done)
 	{
 		cur_statement.clear();
 
@@ -443,6 +444,7 @@ bool parse_statement(string& json)
 		{
 			if(!parse_conditional(cur_statement))
 				return false;
+			done = true;
 		}
 		else
 		{
@@ -488,18 +490,18 @@ bool parse_statement(string& json)
 				cerr << "Parse error in parse_statement(): expected '.' or ',' at end of statement." << endl;
 				return false;
 			}
+
+			char delimiter = token_value[0];
+			next_token();
+			if(delimiter == '.')
+			{
+			    done = true;
+			}
 		}
 
 		if(nfirst)
 			json += ",";
 		json += cur_statement;
-
-		char delimiter = token_value[0];
-		next_token();
-		if(delimiter == '.')
-		{
-			break;
-		}
 	}
 
 	json += "]}";
