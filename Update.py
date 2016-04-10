@@ -41,13 +41,13 @@ class Update_cond:
 	#  {'type':'if', 'condition':some lambda, 'updates' : list of updates},
 	#		{'type':'else', 'updates'}]
 	def __init__(self, cond_list):
-		self.cond_dict = cond_dict
+		self.cond_list = cond_list
 	
 	def execute(self, fields):
 		
 		if_was_executed = False
 	
-		for section_dict in cond_list:
+		for section_dict in self.cond_list:
 			if section_dict['type'] == 'if':
 				condition = section_dict['condition']
 				if condition(fields):
