@@ -17,7 +17,7 @@ def create_update(_elem):
 		# http://stackoverflow.com/questions/11775460/lexical-cast-from-string-to-type
 		return Update_get(elem['get_field'], int, elem['get_prompt'] if elem['get_prompt'] else None)
 	if elem['type'] == 'set':
-		f = lambda __: elem['value']
+		f = lambda _fields: eval(elem['value'], _fields)
 		return Update_set(field = elem['field'], value_expression = f)
 	if elem['type'] == 'cond':
 		return parse_cond_update(elem)
@@ -39,11 +39,13 @@ def create_game(_states):
 	states = {name:create_state(updates) for name,updates in _states.items()}
 	return Game(fields, states)
 
-
+# Function 
 def run_game(_input):
 	#json read stuff
 	game = create_game(input)
-	while(True):
+
+	# not ideal solution
+	while( fields['state'] != "Finish" ):
 		game.step()
 	print("Donzo")
 
