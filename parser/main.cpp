@@ -206,14 +206,16 @@ void tokenizer_init()
 	next_token();
 }
 
-bool parse_expression();
+bool parse_expression(string& expr);
 
-bool parse_expression_term()
+bool parse_expression_factor(string& expr)
 {
+	string temp;
 	if(token_type == TOKEN_OPERATOR && token_value == "(")
 	{
-		if(!parse_expression())
+		if(!parse_expression(temp))
 			return false;
+		expr = "(" + temp + ")";
 		if(token_type != TOKEN_OPERATOR || token_value != ")")
 		{
 			cerr << "Parse error in parse_expression_term(): expected operator ')'" << endl;
@@ -224,48 +226,51 @@ bool parse_expression_term()
 	else if(token_type == TOKEN_OPERATOR && token_value == "-")
 	{
 		next_token();
-		if(!parse_expression())
+		if(!parse_expression(temp))
 			return false;
+		expr = "-" + temp;
 	}
 	else if(token_type == TOKEN_NUMBER)
 	{
+		expr = token_value;
 		next_token();
 		return true;
 	}
 	else if(token_type == TOKEN_VARIABLE)
 	{
+		expr = token_value;
 		next_token();
 		return true;
 	}
 	else if(token_type == TOKEN_PYTHON_CODE)
 	{
+		expr = "(" + token_value  + ")";
 		next_token();
 		return true;
 	}
 	else
 	{
-		cerr << "Parse error in parse_expression_term(): expected number or variable" << endl;
+		cerr << "Parse error in parse_expression_factor(): expected number or variable" << endl;
 		return false;
 	}
 
 	return true;
 }
 
-bool parse_expression_factor()
+bool parse_expression_term(string& expr)
 {
+	expr.clear();
+	string temp;
 	while(true)
 	{
-		if(!parse_expression_term())
+		if(!parse_expression_factor(temp))
 			return false;
+		expr += temp;
 
-		if(token_type == TOKEN_OPERATOR)
+		if(token_type == TOKEN_OPERATOR &&
+		   (token_value == "*" || token_value == "/" || token_value == "%"))
 		{
-			if(token_value != "+" && token_value != "-" && token_value != ")")
-			{
-				cerr << "Parse error in parse_expression_factor(): expected operator '+', '-', or ')'" << endl;
-				return false;
-			}
-
+			expr += " " + token_value + " ";
 			next_token();
 		}
 		else
@@ -275,21 +280,21 @@ bool parse_expression_factor()
 	}
 }
 
-bool parse_expression_noncompare()
+bool parse_expression_noncompare(string& expr)
 {
+	expr.clear();
+	string temp;
 	while(true)
 	{
-		if(!parse_expression_factor())
+		temp.clear();
+		if(!parse_expression_term(temp))
 			return false;
+		expr += temp;
 
-		if(token_type == TOKEN_OPERATOR)
+		if(token_type == TOKEN_OPERATOR &&
+		   (token_value == "+" || token_value == "-"))
 		{
-			if(token_value != "*" && token_value != "/" && token_value != "%" && token_value != ")")
-			{
-				cerr << "Parse error in parse_expression_noncompare(): expected operator '*', '/', '%', ')'" << endl;
-				return false;
-			}
-
+			expr += " " + token_value + " ";
 			next_token();
 		}
 		else
@@ -299,35 +304,42 @@ bool parse_expression_noncompare()
 	}
 }
 
-bool parse_expression()
+bool parse_expression(string& expr)
 {
-	if(!parse_expression_noncompare())
+	if(!parse_expression_noncompare(expr))
 		return false;
 
 	if((token_type == TOKEN_KEYWORD && token_value == "is") ||
 	   (token_type == TOKEN_OPERATOR && (token_value == "<" || token_value == ">")))
 	{
+		expr += " " + token_value + " ";
+		string temp;
 		next_token();
-		if(!parse_expression_noncompare())
+		if(!parse_expression_noncompare(temp))
 			return false;
+		expr += temp;
 	}
 
 	return true;
 }
 
-bool parse_statement();
+bool parse_statement(string& json);
 
-bool parse_conditional()
+bool parse_conditional(string& json)
 {
+	json = "{'type':'cond','cond_list':";
 	if(token_type != TOKEN_KEYWORD || token_value != "if")
 	{
 		cerr << "Parse error in parse_conditional(): expected 'if'" << endl;
 		return false;
 	}
-	
+
+	string temp;
 	next_token();
-	if(!parse_expression())
+	if(!parse_expression(temp))
 		return false;
+	
+	json += "[{'type':'if','condition':'" + temp + "','updates':[";
 
 	if(token_type != TOKEN_DELIMITER || token_value != ":")
 	{
@@ -336,8 +348,10 @@ bool parse_conditional()
 	}
 
 	next_token();
-	if(!parse_statement())
+	if(!parse_statement(temp))
 		return false;
+
+	json += temp + "]}";
 
 	if(token_type == TOKEN_KEYWORD && token_value == "else")
 	{
@@ -345,13 +359,15 @@ bool parse_conditional()
 		if(token_type == TOKEN_DELIMITER && token_value == ":")
 		{
 			next_token();
-			if(!parse_statement())
+			if(!parse_statement(temp))
 				return false;
+			json += ",{'type':'else','condition':'','updates':[" + temp + "]}]";
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "if")
 		{
-			if(!parse_conditional())
+			if(!parse_conditional(temp))
 				return false;
+			json += ",{'type':'else','condition':'','updates':[" + temp + "]}]";
 		}
 		else
 		{
@@ -360,16 +376,20 @@ bool parse_conditional()
 		}
 	}
 
+	json += "}";
+
 	return true;
 }
 
-bool parse_assignment()
+bool parse_assignment(string& json)
 {
 	if(token_type != TOKEN_VARIABLE)
 	{
 		cerr << "Parse error in parse_assignment(): expected variable name." << endl;
 		return false;
 	}
+
+	json = "{'type':'set','field':'" + token_value + "','value':'";
 
 	next_token();
 	if(token_type != TOKEN_KEYWORD && token_value != "is")
@@ -378,32 +398,40 @@ bool parse_assignment()
 		return false;
 	}
 
+	string temp;
 	next_token();
 	if(token_type == TOKEN_STRING)
 	{
 		next_token();
 		return true;
 	}
-	else if(!parse_expression())
+	else if(!parse_expression(temp))
 		return false;
+
+	json += temp + "'}";
 
 	return true;
 }
 
-bool parse_statement()
+bool parse_statement(string& json)
 {
+	json = "{'type':'update_list','list':[";
+	string cur_statement;
+	bool nfirst = false;
 	while(true)
 	{
+		cur_statement.clear();
+		
 		if(token_type == TOKEN_VARIABLE)
 		{
-			if(!parse_assignment())
+			if(!parse_assignment(cur_statement))
 				return false;
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "if")
 		{
-			if(!parse_conditional())
+			if(!parse_conditional(cur_statement))
 				return false;
-			return true;
+		    break;
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "say")
 		{
@@ -413,6 +441,7 @@ bool parse_statement()
 				cerr << "Parse error in parse_statement(): expected string" << endl;
 				return false;
 			}
+			cur_statement = "{'type':'say','say_string':'" + token_value + "'}";
 			next_token();
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "get")
@@ -423,6 +452,7 @@ bool parse_statement()
 				cerr << "Parse error in parse_statement(): expected variable" << endl;
 				return false;
 			}
+			cur_statement = "{'type':'get','get_field':'" + token_value + "'}";
 			next_token();
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "finish")
@@ -441,16 +471,24 @@ bool parse_statement()
 			return false;
 		}
 
+		if(nfirst)
+			json += ",";
+		json += cur_statement;
+
 		char delimiter = token_value[0];
 		next_token();
 		if(delimiter == '.')
 		{
-			return true;
+			break;
 		}
 	}
+
+	json += "]}";
+	
+	return true;
 }
 
-bool parse_state()
+bool parse_state(string& json)
 {
 	if(token_type != TOKEN_KEYWORD || token_value != "state")
 	{
@@ -464,6 +502,7 @@ bool parse_state()
 		cerr << "Parse error in parse_state(): expected variable" << endl;
 		return false;
 	}
+	json = "\"" + token_value + "\" : ";
 
 	next_token();
 	if(token_type != TOKEN_DELIMITER || token_value != ":")
@@ -473,26 +512,39 @@ bool parse_state()
 	}
 		
 	next_token();
-	while(token_type != TOKEN_KEYWORD || token_value != "state")
+	json += "[";
+	bool nfirst = false;
+	while((token_type != TOKEN_KEYWORD || token_value != "state") && token_type != TOKEN_EOF)
 	{
-		if(token_type == TOKEN_EOF)
-			return true;
-		
-		if(!parse_statement())
+		string temp;
+		if(!parse_statement(temp))
 			return false;
+		if(nfirst)
+			json += ",";
+		json += temp;
+		nfirst = true;
 	}
+	json += "]";
 
 	return true;
 }
 
-bool parse_rulebook()
+bool parse_rulebook(string& json)
 {
+	string temp;
+	json = "{";
+	bool nfirst = false;
 	while(token_type != TOKEN_EOF)
 	{
-		if(!parse_state())
+		if(!parse_state(temp))
 			return false;
+		if(nfirst)
+			json += ",";
+		json += temp;
+		nfirst = true;
 	}
-
+	json += "}";
+	
 	return true;
 }
 
@@ -500,8 +552,13 @@ int main()
 {
 	tokenizer_init();
 
-	if(!parse_rulebook())
+	string json;
+	if(!parse_rulebook(json))
 	{
 		cerr << "Failed at line " << token_line << " token " << str_token() << endl;
+	}
+	else
+	{
+		cout << json << endl;
 	}
 }
