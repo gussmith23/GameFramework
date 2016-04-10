@@ -15,8 +15,12 @@ state choose:
 state wrong:
     if guessed_num < number_to_guess: Say "You guessed too low".
     else: Say "You guessed too high".
-    next_state is choose.
+    next_state is "choose".
 
 state victory:
     Say "Good job!".
+    next_state is "finished".
+
+state finished:
+    Say "something".
     Finish.
