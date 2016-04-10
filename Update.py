@@ -50,7 +50,8 @@ class Update_cond:
 		for section_dict in self.cond_list:
 			if section_dict['type'] == 'if':
 				condition = section_dict['condition']
-				if condition(fields):
+				
+				if eval(condition, fields):
 					if_was_executed = True
 					for update in section_dict['updates']: 
 						update.execute(fields)

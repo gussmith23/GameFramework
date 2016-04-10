@@ -25,7 +25,6 @@ def add_initial_field_from_update(update, fields):
 
 	# straightforward case.
 	if update['type'] == "set":
-		print(eval(update['value']))
 		fields[update['field']] = eval(update['value']) # note this assumes values are constants
 		
 	# recurse to find sets contained in lists.
@@ -66,7 +65,7 @@ def parse_cond_update(elem):
 	for if_or_else_dict in elem['cond_list']:
 		cond_list_element = {}
 		cond_list_element['type'] = if_or_else_dict['type']
-		cond_list_element['condition'] = lambda _fields: eval(if_or_else_dict['condition'], _fields)
+		cond_list_element['condition'] = if_or_else_dict['condition']
 		cond_list_element['updates'] = [create_update(i) for i in if_or_else_dict['updates']]
 		
 		cond_list.append(cond_list_element)
@@ -92,6 +91,10 @@ def create_game(_states, fields):
 def run(_input):
 	#json read stuff
 	fields = create_fields(_input)
+	
+	# debug
+	print(fields)
+	
 	game = create_game(_input, fields)
 	# not ideal solution
 	while( fields['next_state'] != "finish" ):
