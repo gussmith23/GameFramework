@@ -8,6 +8,8 @@ from math import *
 
 import json
 
+import subprocess
+
 # Initializes the fields dictionary global for the game object
 def create_fields(_input):
 	init = _input['init']
@@ -89,6 +91,7 @@ def create_game(_states, fields):
 
 # Main function: just run the game 
 def run(_input):
+
 	#json read stuff
 	fields = create_fields(_input)
 	
@@ -101,3 +104,13 @@ def run(_input):
 		game.step()
 	print(" done with the loop ")
 
+# Input is a string containing the contents of the file.	
+def runFromString(_input):
+	completed = subprocess.run(["parser"], universal_newlines = True, input = _input)
+	parsed = json.loads(completed.stdout)
+	fields = create_fields(parsed)
+	game = create_game(parsed, fields)
+	# not ideal solution
+	while( fields['next_state'] != "finish" ):
+		game.step()
+	print(" done with the loop ")
