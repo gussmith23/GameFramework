@@ -10,14 +10,14 @@ fields = {
 
 init:
     Say "Welcome to guess a number!".
-    state is choose.
+    state is "choose".
 
 choose:
     Get guessed_num.
     if guessed_num is number_to_guess:
-        state is victory
+        state is "victory".
     else:
-        state is wrong.
+        state is "wrong".
 
 wrong:
     if guessed_num less than number_to_guess: Say "You guessed too low",
