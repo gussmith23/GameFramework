@@ -8,14 +8,17 @@ from math import *
 
 import json
 
-def create_update(_elem):
+def create_update(elem):
 	if elem['type'] == 'say':
-		return Update_say(elem['say'])
+		return Update_say(elem['say_string'])
 	if elem['type'] == 'get':
 		#return Update_get(elem['get_field'], elem['get_type'], elem['get_prompt'] if elem['get_prompt'] else None)
 		# Hardcoding int for now
 		# http://stackoverflow.com/questions/11775460/lexical-cast-from-string-to-type
-		return Update_get(elem['get_field'], int, elem['get_prompt'] if elem['get_prompt'] else None)
+		try:
+			return Update_get(elem['get_field'], int, elem['get_prompt'])
+		except KeyError:
+			return Update_get(elem['get_field'], int)
 	if elem['type'] == 'set':
 		f = lambda _fields: eval(elem['value'], _fields)
 		return Update_set(field = elem['field'], value_expression = f)
@@ -42,7 +45,7 @@ def create_game(_states):
 # Function 
 def run_game(_input):
 	#json read stuff
-	game = create_game(input)
+	game = create_game(_input)
 
 	# not ideal solution
 	while( fields['state'] != "Finish" ):
