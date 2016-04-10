@@ -14,11 +14,11 @@ fields = {
 
 def main():
 	
-	update_init_print = Update(lambda _fields: print("Welcome to Guess a Number!"))
+	update_init_print = Update(say_string = "Welcome to Guess a Number!")
 	update_init_nextstate = Update(field = 'current_state', value = 'choose')
 	state_init = State([update_init_print, update_init_nextstate])
 
-	update_guessed_num = Update(field = 'guessed_num', value_expression = lambda _fields: int(input('Guess a number: ')))
+	update_guessed_num = Update(get_field = 'guessed_num', get_prompt = "Guess a number: ", get_type = int)
 	update_victory = Update(field = 'victory', value_expression = lambda _fields: _fields['number_to_guess'] == _fields['guessed_num'])
 	state_choose = State([update_guessed_num, update_victory])
 	
