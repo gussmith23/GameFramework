@@ -327,14 +327,14 @@ bool parse_expression_unquoted(string& expr)
 
 bool parse_expression(string& expr)
 {
-	expr = "\"";
+	expr = "\"\\\"";
 
 	string temp;
 	if(!parse_expression_unquoted(temp))
 		return false;
 	expr += temp;
 
-	expr += "\"";
+	expr += "\\\"\"";
 
 	return true;
 }
@@ -355,7 +355,7 @@ bool parse_conditional(string& json)
 	if(!parse_expression(temp))
 		return false;
 	
-	json += "[{\"type\":\"if\",\"condition\":\"" + temp + "\",\"updates\":[";
+	json += "[{\"type\":\"if\",\"condition\":" + temp + ",\"updates\":[";
 
 	if(token_type != TOKEN_DELIMITER || token_value != ":")
 	{
