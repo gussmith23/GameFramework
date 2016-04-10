@@ -1,10 +1,10 @@
 state init:
     guessed_num is -1.
     number_to_guess is `randint(0,10)`.
-    Say "Welcome to guess a number!".
     next_state is "choose".
 
 state choose:
+    Say "Please guess a number!".
     Get guessed_num.
     if guessed_num is number_to_guess:
         next_state is "victory".

@@ -7,8 +7,8 @@ from random import randint
 from math import *
 
 import json
-
 import subprocess
+import sys
 
 # Initializes the fields dictionary global for the game object
 def create_fields(_input):
@@ -94,18 +94,15 @@ def run(filename):
 	with open(filename) as file:
 		data = file.read().replace('\n','')
 	dj = json.loads(data)
-
 	#json read stuff
 	#fields = create_fields(_input)
 	fields = create_fields(dj)
-
 	# debug
-	print(fields)
-	
+	#print(fields)
 	#game = create_game(_input, fields)
 	game = create_game(dj, fields)
 	# not ideal solution
-	while( fields['next_state'] != "finish" ):
+	while( fields['next_state'] != "finished" ):
 		game.step()
 	print(" done with the loop ")
 
@@ -113,15 +110,17 @@ def runWithFilename(filename):
 	with open(filename) as file:
 		data = file.read()
 	runFromString(data)
-	
-	
+
 # Input is a string containing the contents of the file.	
 def runFromString(_input):
-	completed = subprocess.run(["parser"], universal_newlines = True, input = _input)
-	parsed = json.loads(completed.stdout)
+	completed = subprocess.check_output(["parser/build/parser"], universal_newlines = True, input = _input)
+	parsed = json.loads(completed)
 	fields = create_fields(parsed)
 	game = create_game(parsed, fields)
 	# not ideal solution
-	while( fields['next_state'] != "finish" ):
+	while( fields['next_state'] != "finished" ):
 		game.step()
-	print(" done with the loop ")
+	print("Game over. Play again?")
+
+if __name__ == '__main__':
+	runWithFilename(sys.argv[1])
