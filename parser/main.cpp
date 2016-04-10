@@ -448,7 +448,6 @@ bool parse_statement(string& json)
 		{
 			if(!parse_conditional(cur_statement))
 				return false;
-		    break;
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "say")
 		{
