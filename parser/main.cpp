@@ -438,53 +438,56 @@ bool parse_statement(string& json)
 	while(true)
 	{
 		cur_statement.clear();
-		
-		if(token_type == TOKEN_VARIABLE)
-		{
-			if(!parse_assignment(cur_statement))
-				return false;
-		}
-		else if(token_type == TOKEN_KEYWORD && token_value == "if")
+
+		if(token_type == TOKEN_KEYWORD && token_value == "if")
 		{
 			if(!parse_conditional(cur_statement))
 				return false;
 		}
-		else if(token_type == TOKEN_KEYWORD && token_value == "say")
-		{
-			next_token();
-			if(token_type != TOKEN_STRING)
-			{
-				cerr << "Parse error in parse_statement(): expected string" << endl;
-				return false;
-			}
-			cur_statement = "{\"type\":\"say\",\"say_string\":\"" + token_value + "\"}";
-			next_token();
-		}
-		else if(token_type == TOKEN_KEYWORD && token_value == "get")
-		{
-			next_token();
-			if(token_type != TOKEN_VARIABLE)
-			{
-				cerr << "Parse error in parse_statement(): expected variable" << endl;
-				return false;
-			}
-			cur_statement = "{\"type\":\"get\",\"get_field\":\"" + token_value + "\"}";
-			next_token();
-		}
-		else if(token_type == TOKEN_KEYWORD && token_value == "finish")
-		{
-			next_token();
-		}
 		else
 		{
-			cerr << "Parse error in parse_statement(): expected variable or 'if'" << endl;
-			return false;
-		}
+			if(token_type == TOKEN_VARIABLE)
+			{
+				if(!parse_assignment(cur_statement))
+					return false;
+			}
+			else if(token_type == TOKEN_KEYWORD && token_value == "say")
+			{
+				next_token();
+				if(token_type != TOKEN_STRING)
+				{
+					cerr << "Parse error in parse_statement(): expected string" << endl;
+					return false;
+				}
+				cur_statement = "{\"type\":\"say\",\"say_string\":\"" + token_value + "\"}";
+				next_token();
+			}
+			else if(token_type == TOKEN_KEYWORD && token_value == "get")
+			{
+				next_token();
+				if(token_type != TOKEN_VARIABLE)
+				{
+					cerr << "Parse error in parse_statement(): expected variable" << endl;
+					return false;
+				}
+				cur_statement = "{\"type\":\"get\",\"get_field\":\"" + token_value + "\"}";
+				next_token();
+			}
+			else if(token_type == TOKEN_KEYWORD && token_value == "finish")
+			{
+				next_token();
+			}
+			else
+			{
+				cerr << "Parse error in parse_statement(): expected variable or 'if'" << endl;
+				return false;
+			}
 
-		if(token_type != TOKEN_DELIMITER)
-		{
-			cerr << "Parse error in parse_statement(): expected '.' or ',' at end of statement." << endl;
-			return false;
+			if(token_type != TOKEN_DELIMITER)
+			{
+				cerr << "Parse error in parse_statement(): expected '.' or ',' at end of statement." << endl;
+				return false;
+			}
 		}
 
 		if(nfirst)
