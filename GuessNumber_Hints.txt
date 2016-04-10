@@ -20,7 +20,7 @@ choose:
         state is wrong.
 
 wrong:
-    if guessed_num lt number_to_guess: Say "You guessed too low",
+    if guessed_num less than number_to_guess: Say "You guessed too low",
     else: Say "You guessed too high".
     state is choose.
 

@@ -34,3 +34,13 @@ class Update:
 		
 	def execute(self, fields):
 		self.update(fields)
+
+class Update_say():
+	def __init__(self, say_string, say_args = None):
+		if say_args is not None:
+			self.update = lambda _fields: print(say_string.format(*say_args))
+		else: 
+			self.update = lambda _fields: print(say_string)
+			
+	def execute(self, fields):
+		self.update(fields)
