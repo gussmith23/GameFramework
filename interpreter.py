@@ -21,6 +21,8 @@ def create_update(_elem):
 		return Update_set(field = elem['field'], value_expression = f)
 	if elem['type'] == 'cond':
 		return parse_cond_update(elem)
+	if elem['type'] == 'update_list':
+		return Update_list([create_update(i) for i in elem['list']])
 
 # Creates all updates
 # Returns the created state with all updates added
