@@ -89,13 +89,19 @@ def create_game(_states, fields):
 
 # Main function: just run the game 
 def run(_input):
+	with open('json.txt') as file:
+		data = file.read().replace('\n','')
+	dj = json.loads(data)
+
 	#json read stuff
-	fields = create_fields(_input)
-	
+	#fields = create_fields(_input)
+	fields = create_fields(dj)
+
 	# debug
 	print(fields)
 	
-	game = create_game(_input, fields)
+	#game = create_game(_input, fields)
+	game = create_game(dj, fields)
 	# not ideal solution
 	while( fields['next_state'] != "finish" ):
 		game.step()
