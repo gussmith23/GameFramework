@@ -39,11 +39,13 @@ def create_game(_states):
 	states = {name:create_state(updates) for name,updates in _states.items()}
 	return Game(fields, states)
 
-
+# Function 
 def run_game(_input):
 	#json read stuff
 	game = create_game(input)
-	while(True):
+
+	# not ideal solution
+	while( fields['state'] != "Finish" ):
 		game.step()
 	print("Donzo")
 
