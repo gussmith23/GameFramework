@@ -26,6 +26,8 @@ def create_update(elem):
 		return parse_cond_update(elem)
 	if elem['type'] == 'update_list':
 		return Update_list([create_update(i) for i in elem['list']])
+	if elem['type'] == 'finish':
+		return Update_finish()
 
 # Creates all updates
 # Returns the created state with all updates added

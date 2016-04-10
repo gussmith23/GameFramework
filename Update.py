@@ -99,3 +99,9 @@ class Update_list:
 	
 	def execute(self, fields):
 		for update in self.updates: update.execute(fields)
+		
+class Update_finish:
+	def __init(self):
+		pass
+	def execute(self, fields):
+		pass
