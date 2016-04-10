@@ -15,11 +15,11 @@ fields = {
 def main():
 	
 	update_init_print = Update(lambda _fields: print("Welcome to Guess a Number!"))
-	update_init_nextstate = Update(lambda _fields: setitem(_fields, 'current_state', 'choose'))
+	update_init_nextstate = Update(field = 'current_state', value = 'choose')
 	state_init = State([update_init_print, update_init_nextstate])
 
-	update_guessed_num = Update(lambda _fields: setitem(_fields, 'guessed_num', int(input('Guess a number: '))))
-	update_victory = Update(lambda _fields: setitem(_fields, 'victory', _fields['number_to_guess'] == _fields['guessed_num']))
+	update_guessed_num = Update(field = 'guessed_num', value_expression = lambda _fields: int(input('Guess a number: ')))
+	update_victory = Update(field = 'victory', value_expression = lambda _fields: _fields['number_to_guess'] == _fields['guessed_num'])
 	state_choose = State([update_guessed_num, update_victory])
 	
 	game = Game(fields, {"init":state_init, "choose":state_choose})
