@@ -71,7 +71,8 @@ void next_token()
 	// Check if operator
 	if(cur_char() == '+' || cur_char() == '-' ||
 	   cur_char() == '(' || cur_char() == ')' ||
-	   cur_char() == '/' || cur_char() == '%')
+	   cur_char() == '/' || cur_char() == '%' ||
+	   cur_char() == '<' || cur_char() == '>')
 	{
 		token_type = TOKEN_OPERATOR;
 		token_value = cur_char();
@@ -220,12 +221,23 @@ bool parse_expression_term()
 		}
 		next_token();
 	}
+	else if(token_type == TOKEN_OPERATOR && token_value == "-")
+	{
+		next_token();
+		if(!parse_expression())
+			return false;
+	}
 	else if(token_type == TOKEN_NUMBER)
 	{
 		next_token();
 		return true;
 	}
 	else if(token_type == TOKEN_VARIABLE)
+	{
+		next_token();
+		return true;
+	}
+	else if(token_type == TOKEN_PYTHON_CODE)
 	{
 		next_token();
 		return true;
@@ -292,7 +304,8 @@ bool parse_expression()
 	if(!parse_expression_noncompare())
 		return false;
 
-	if(token_type == TOKEN_KEYWORD && token_value == "is")
+	if((token_type == TOKEN_KEYWORD && token_value == "is") ||
+	   (token_type == TOKEN_OPERATOR && (token_value == "<" || token_value == ">")))
 	{
 		next_token();
 		if(!parse_expression_noncompare())
@@ -366,7 +379,12 @@ bool parse_assignment()
 	}
 
 	next_token();
-	if(!parse_expression())
+	if(token_type == TOKEN_STRING)
+	{
+		next_token();
+		return true;
+	}
+	else if(!parse_expression())
 		return false;
 
 	return true;
