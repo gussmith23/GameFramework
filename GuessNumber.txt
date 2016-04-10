@@ -1,0 +1,27 @@
+
+(comments can be)
+
+fields = {
+    'number_to_guess'   : randint(0, 10), 
+    'guessed_num'       : -1,
+    'state'             : "init"
+}
+
+init:
+    Say "Welcome to guess a number!".
+    state is choose.
+
+choose:
+    Get guessed_num.
+    if guessed_num is number_to_guess:
+        state is victory
+    else:
+        state is wrong.
+
+wrong:
+    Say "You guessed wrong".
+    state is choose.
+
+victory:
+    Say "Good job!".
+    Finish.
