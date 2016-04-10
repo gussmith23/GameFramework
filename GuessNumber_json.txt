@@ -1,5 +1,5 @@
 from random import randint
-game = { 'init' : [], 'choose' : [], 'wrong' : [], 'victory' : [] }
+game = { 'init' : [], 'choose' : [], 'wrong' : [], 'finish' : [] }
 game['init'] = [
 	{'type': 'set', 'field': 'guessed_num', 'value': '-1'},
 	{'type': 'set', 'field': 'number_to_guess', 'value': 'randint(0,10)'},
@@ -10,10 +10,10 @@ game['choose'] = [
 	{'type': 'say', 'say_string': 'Choose a number.'},
 	{'type': 'get', 'get_field': 'guessed_num', 'get_type': 'int', },
 	{'type': 'cond', 'cond_list':
-		[{'type':'if', 'condition':"guessed_num == number_to_guess", 
-		'updates' : [{'type': 'set', 'field': 'next_state', 'value': '"victory"'}]},
-		{'type':'else', 'condition':"guessed_num != number_to_guess",
-		'updates' : [{'type': 'set', 'field': 'next_state', 'value': '"wrong"'}]}
+		[{'type':'if', 'condition':"guessed_num != number_to_guess", 
+		'updates' : [{'type': 'set', 'field': 'next_state', 'value': '"wrong"'}]},
+		{'type':'else', 'condition':"guessed_num == number_to_guess",
+		'updates' : [{'type': 'set', 'field': 'next_state', 'value': '"finish"'}]}
 	]}
 ]
 game['wrong']=[
@@ -25,7 +25,8 @@ game['wrong']=[
 	]},
 	{'type': 'set', 'field': 'next_state', 'value': '"choose"'}
 ]
-game['victory']=[
+game['finish']=[
 	{'type': 'say', 'say_string': 'Good job!'},
+	{'type': 'set', 'field': 'next_state', 'value': '"finish"'},
 	{'type': 'finish', 'field': 'next_state', 'value': 'finish'}
 ]
