@@ -15,6 +15,12 @@ Rules for RuleBook:
 	a. Initialization of variables takes place in init (for us)
 
 
+Still Need:
+What updates look like?
+Comparison operator?
+Arithmetic?
+
+
 Keywords:
 Get
 Say
