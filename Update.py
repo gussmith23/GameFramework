@@ -61,7 +61,7 @@ class Update_cond:
 					for update in section_dict['updates']: 
 						update.execute(fields)
 
-class Update_set():
+class Update_set:
 	def __init__(self, update = None, field = None, value = None, value_expression = None):
 		if update != None:
 			self.update = update
@@ -70,10 +70,10 @@ class Update_set():
 		elif field is not None and value is not None:
 			self.update = lambda _fields: setitem(_fields, field, value)
 
-	def execute(self, _fields):
+	def execute(self, fields):
 		self.update(fields)
 
-class Update_say():
+class Update_say:
 	def __init__(self, say_string, say_args = None):
 		if say_args is not None:
 			self.update = lambda _fields: print(say_string.format(*say_args))
@@ -83,7 +83,7 @@ class Update_say():
 	def execute(self, fields):
 		self.update(fields)
 
-class Update_get():
+class Update_get:
 	def __init__(self, get_field, get_type, get_prompt = None ):
 		if get_prompt is not None:
 			self.update = lambda _fields: setitem(_fields, get_field, get_type(input(get_prompt)))
