@@ -17,4 +17,8 @@ state wrong:
 
 state victory:
     Say "Good job!".
+    next_state is "finished".
+
+state finished:
+    Say "something".
     Finish.
