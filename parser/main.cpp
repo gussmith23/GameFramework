@@ -207,13 +207,14 @@ void tokenizer_init()
 }
 
 bool parse_expression(string& expr);
+bool parse_expression_unquoted(string& expr);
 
 bool parse_expression_factor(string& expr)
 {
 	string temp;
 	if(token_type == TOKEN_OPERATOR && token_value == "(")
 	{
-		if(!parse_expression(temp))
+		if(!parse_expression_unquoted(temp))
 			return false;
 		expr = "(" + temp + ")";
 		if(token_type != TOKEN_OPERATOR || token_value != ")")
@@ -226,7 +227,7 @@ bool parse_expression_factor(string& expr)
 	else if(token_type == TOKEN_OPERATOR && token_value == "-")
 	{
 		next_token();
-		if(!parse_expression(temp))
+		if(!parse_expression_unquoted(temp))
 			return false;
 		expr = "-" + temp;
 	}
@@ -304,16 +305,17 @@ bool parse_expression_noncompare(string& expr)
 	}
 }
 
-bool parse_expression(string& expr)
+bool parse_expression_unquoted(string& expr)
 {
-	if(!parse_expression_noncompare(expr))
+	string temp;
+	if(!parse_expression_noncompare(temp))
 		return false;
+	expr += temp;
 
 	if((token_type == TOKEN_KEYWORD && token_value == "is") ||
 	   (token_type == TOKEN_OPERATOR && (token_value == "<" || token_value == ">")))
 	{
 		expr += " " + token_value + " ";
-		string temp;
 		next_token();
 		if(!parse_expression_noncompare(temp))
 			return false;
@@ -323,11 +325,25 @@ bool parse_expression(string& expr)
 	return true;
 }
 
+bool parse_expression(string& expr)
+{
+	expr = "\"";
+
+	string temp;
+	if(!parse_expression_unquoted(temp))
+		return false;
+	expr += temp;
+
+	expr += "\"";
+
+	return true;
+}
+
 bool parse_statement(string& json);
 
 bool parse_conditional(string& json)
 {
-	json = "{'type':'cond','cond_list':";
+	json = "{\"type\":\"cond\",\"cond_list\":";
 	if(token_type != TOKEN_KEYWORD || token_value != "if")
 	{
 		cerr << "Parse error in parse_conditional(): expected 'if'" << endl;
@@ -339,7 +355,7 @@ bool parse_conditional(string& json)
 	if(!parse_expression(temp))
 		return false;
 	
-	json += "[{'type':'if','condition':'" + temp + "','updates':[";
+	json += "[{\"type\":\"if\",\"condition\":\"" + temp + "\",\"updates\":[";
 
 	if(token_type != TOKEN_DELIMITER || token_value != ":")
 	{
@@ -361,13 +377,13 @@ bool parse_conditional(string& json)
 			next_token();
 			if(!parse_statement(temp))
 				return false;
-			json += ",{'type':'else','condition':'','updates':[" + temp + "]}]";
+			json += ",{\"type\":\"else\",\"condition\":\"\",\"updates\":[" + temp + "]}]";
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "if")
 		{
 			if(!parse_conditional(temp))
 				return false;
-			json += ",{'type':'else','condition':'','updates':[" + temp + "]}]";
+			json += ",{\"type\":\"else\",\"condition\":\"\",\"updates\":[" + temp + "]}]";
 		}
 		else
 		{
@@ -389,7 +405,7 @@ bool parse_assignment(string& json)
 		return false;
 	}
 
-	json = "{'type':'set','field':'" + token_value + "','value':'";
+	json = "{\"type\":\"set\",\"field\":\"" + token_value + "\",\"value\":";
 
 	next_token();
 	if(token_type != TOKEN_KEYWORD && token_value != "is")
@@ -402,20 +418,21 @@ bool parse_assignment(string& json)
 	next_token();
 	if(token_type == TOKEN_STRING)
 	{
+		json += "\"\\\"" + token_value + "\\\"\"}";
 		next_token();
 		return true;
 	}
 	else if(!parse_expression(temp))
 		return false;
 
-	json += temp + "'}";
+	json += temp + "}";
 
 	return true;
 }
 
 bool parse_statement(string& json)
 {
-	json = "{'type':'update_list','list':[";
+	json = "{\"type\":\"update_list\",\"list\":[";
 	string cur_statement;
 	bool nfirst = false;
 	while(true)
@@ -441,7 +458,7 @@ bool parse_statement(string& json)
 				cerr << "Parse error in parse_statement(): expected string" << endl;
 				return false;
 			}
-			cur_statement = "{'type':'say','say_string':'" + token_value + "'}";
+			cur_statement = "{\"type\":\"say\",\"say_string\":\"" + token_value + "\"}";
 			next_token();
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "get")
@@ -452,7 +469,7 @@ bool parse_statement(string& json)
 				cerr << "Parse error in parse_statement(): expected variable" << endl;
 				return false;
 			}
-			cur_statement = "{'type':'get','get_field':'" + token_value + "'}";
+			cur_statement = "{\"type\":\"get\",\"get_field\":\"" + token_value + "\"}";
 			next_token();
 		}
 		else if(token_type == TOKEN_KEYWORD && token_value == "finish")
@@ -502,7 +519,7 @@ bool parse_state(string& json)
 		cerr << "Parse error in parse_state(): expected variable" << endl;
 		return false;
 	}
-	json = "\"" + token_value + "\" : ";
+	json = "\"" + token_value + "\":";
 
 	next_token();
 	if(token_type != TOKEN_DELIMITER || token_value != ":")
