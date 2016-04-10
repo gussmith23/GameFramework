@@ -55,5 +55,16 @@ Some background:
 Text-based games can be represented by state machines by a low-footprint Python interpreter,
 so it is our Python interpreter and C++ language parser that does the heavy lifting.
 
-#### You can focus on writing simple, readable code.
+##### Instructions for building and compiling:
+    $ directory/you/want/GameFramework
+    $ git clone https://github.com/gussmith23/GameFramework/
+    $ cd GameFramework/parser
+    $ mkdir build
+    $ cd build
+    $ cmake .. -DCMAKE_BUILD_TYPE=Release
+    $ make
+    $ cd ../..
+    $ python3 interpreter.py GuessNumber.txt
+
+#### After the initial compilation, you can focus on writing simple, readable code.
 #### Happy Gaming!
