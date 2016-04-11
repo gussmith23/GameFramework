@@ -56,7 +56,7 @@ Text-based games can be represented by state machines by a low-footprint Python 
 so it is our Python interpreter and C++ language parser that does the heavy lifting.
 
 ##### Instructions for building and compiling:
-    $ directory/you/want/GameFramework
+    $ cd directory/you/want/GameFramework
     $ git clone https://github.com/gussmith23/GameFramework/
     $ cd GameFramework/parser
     $ mkdir build
